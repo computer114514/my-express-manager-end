@@ -3,7 +3,7 @@
         <template #header>
             <div class="card-header">
                 <span>机构管理</span>
-                <el-button type="primary" :icon="Plus" @click="handleAdd"
+                <el-button type="primary" :icon="Plus" @click="openAddDrawer"
                     >新增</el-button
                 >
             </div>
@@ -26,15 +26,12 @@
 
             <!-- 右侧：机构详细信息 -->
             <div class="organ-detail">
-                <!-- 1. 未选择节点时的占位 -->
                 <el-empty
                     v-if="!currentNode"
                     description="请在左侧选择一个机构"
                 />
 
-                <!-- 2. 选中节点后的详情展示 -->
                 <template v-else>
-                    <!-- 头部：标题与操作按钮 -->
                     <div class="detail-header">
                         <h3 style="margin: 0">
                             {{ organDetail?.name || currentNode.label }}
@@ -43,7 +40,7 @@
                             <el-button
                                 type="primary"
                                 :icon="Edit"
-                                @click="handleEdit"
+                                @click="openEditDrawer"
                                 >编辑</el-button
                             >
                             <el-button
@@ -58,7 +55,6 @@
 
                     <el-divider style="margin: 15px 0" />
 
-                    <!-- 加载骨架屏（请求接口时显示） -->
                     <el-skeleton :loading="loading" animated :count="1">
                         <template #template>
                             <el-skeleton-item
@@ -75,29 +71,24 @@
                             />
                         </template>
 
-                        <!-- 详情主体内容 -->
                         <template #default>
                             <el-descriptions :column="2" border>
                                 <el-descriptions-item label="机构 ID" :span="2">
-                                    <!-- 雪花 ID 直接当字符串展示，防止精度丢失 -->
                                     <el-text class="mono-text">{{
                                         organDetail?.id
                                     }}</el-text>
                                 </el-descriptions-item>
-
-                                <el-descriptions-item label="机构名称">
-                                    {{ organDetail?.name }}
-                                </el-descriptions-item>
-
+                                <el-descriptions-item label="机构名称">{{
+                                    organDetail?.name
+                                }}</el-descriptions-item>
                                 <el-descriptions-item label="机构类型">
-                                    <!-- 使用 Tag 和字典映射让类型更直观 -->
                                     <el-tag
                                         :type="getTypeTag(organDetail?.type)"
+                                        >{{
+                                            getTypeLabel(organDetail?.type)
+                                        }}</el-tag
                                     >
-                                        {{ getTypeLabel(organDetail?.type) }}
-                                    </el-tag>
                                 </el-descriptions-item>
-
                                 <el-descriptions-item
                                     label="父级机构 ID"
                                     :span="2"
@@ -111,17 +102,17 @@
                                         >顶级机构</el-tag
                                     >
                                 </el-descriptions-item>
-
-                                <el-descriptions-item label="经度 (Longitude)">
-                                    {{ organDetail?.longitude }}
-                                </el-descriptions-item>
-
-                                <el-descriptions-item label="纬度 (Latitude)">
-                                    {{ organDetail?.latitude }}
-                                </el-descriptions-item>
+                                <el-descriptions-item
+                                    label="经度 (Longitude)"
+                                    >{{
+                                        organDetail?.longitude
+                                    }}</el-descriptions-item
+                                >
+                                <el-descriptions-item label="纬度 (Latitude)">{{
+                                    organDetail?.latitude
+                                }}</el-descriptions-item>
                             </el-descriptions>
 
-                            <!-- 后续扩展区：比如地图打点、下属机构列表等 -->
                             <div class="extra-section">
                                 <h4>📍 地理位置预览</h4>
                                 <div class="map-placeholder">
@@ -139,42 +130,148 @@
             </div>
         </div>
     </el-card>
+
+    <!-- ==================== 新增/编辑 抽屉 (Drawer) ==================== -->
+    <el-drawer v-model="drawerVisible" :title="drawerTitle" size="45%">
+        <el-form
+            :model="formData"
+            label-width="100px"
+            style="padding-right: 20px"
+        >
+            <!-- 1. 机构名称 (新增/编辑 都能改) -->
+            <el-form-item label="机构名称">
+                <el-input
+                    v-model="formData.name"
+                    placeholder="请输入机构名称"
+                />
+            </el-form-item>
+
+            <!-- 2. 经度 (新增/编辑 都能改) -->
+            <el-form-item label="经度">
+                <el-input-number
+                    v-model="formData.longitude"
+                    :precision="5"
+                    :step="0.1"
+                    style="width: 100%"
+                />
+            </el-form-item>
+
+            <!-- 3. 纬度 (新增/编辑 都能改) -->
+            <el-form-item label="纬度">
+                <el-input-number
+                    v-model="formData.latitude"
+                    :precision="5"
+                    :step="0.1"
+                    style="width: 100%"
+                />
+            </el-form-item>
+
+            <!-- 4. 机构类型 (新增能改，编辑禁用) -->
+            <el-form-item label="机构类型">
+                <el-select
+                    v-model="formData.type"
+                    placeholder="请选择类型"
+                    :disabled="isEdit"
+                    style="width: 100%"
+                >
+                    <el-option
+                        v-for="item in typeList"
+                        :key="item.code"
+                        :label="typeMap[item.code]?.label || item.type"
+                        :value="item.code"
+                    />
+                </el-select>
+                <!-- 编辑模式下的开发中提示 -->
+                <div v-if="isEdit" class="dev-hint">
+                    <el-icon><SetUp /></el-icon>
+                    <span>该字段开发中，暂不可修改</span>
+                </div>
+            </el-form-item>
+
+            <!-- 5. 父级机构 (新增能改，编辑禁用) -->
+            <el-form-item label="父级机构">
+                <el-tree-select
+                    v-model="formData.parentId"
+                    :data="treeData"
+                    :props="{ label: 'label', children: 'children' }"
+                    node-key="id"
+                    placeholder="不选则为顶级机构"
+                    clearable
+                    check-strictly
+                    :disabled="isEdit"
+                    style="width: 100%"
+                />
+                <div v-if="isEdit" class="dev-hint">
+                    <el-icon><SetUp /></el-icon>
+                    <span>该字段开发中，暂不可修改</span>
+                </div>
+            </el-form-item>
+        </el-form>
+
+        <!-- 底部按钮 -->
+        <template #footer>
+            <el-button @click="drawerVisible = false">取消</el-button>
+            <el-button
+                type="primary"
+                @click="handleSubmit"
+                :loading="submitLoading"
+                >确定保存</el-button
+            >
+        </template>
+    </el-drawer>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Edit, Delete, Location, Plus } from '@element-plus/icons-vue'
+import { ref, reactive, onMounted } from 'vue'
+import { Edit, Delete, Location, Plus, SetUp } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-// 👇 1. 引入获取详情的 API
-import { getOrganTree, getOrganById } from '../../api/agency'
+import {
+    getOrganTree,
+    getOrganById,
+    getOrganType,
+    createOrgan,
+    updateOrgan,
+    deleteOrgan
+} from '../../api/agency'
 
-// ================= 状态定义 =================
+// ================= 1. 基础状态 =================
 const treeData = ref([])
 const currentNode = ref(null)
-const organDetail = ref(null) // 存储接口返回的详细信息
-const loading = ref(false) // 控制骨架屏加载状态
+const organDetail = ref(null)
+const loading = ref(false)
 
-// 树形属性映射
-const treeProps = {
-    children: 'children',
-    label: 'label' // 假设你的树节点里显示文本的字段叫 label (如果是 name 请改为 name)
-}
+// 树形配置
+const treeProps = { children: 'children', label: 'label' }
 
-// 👇 2. 机构类型字典映射 (根据咱们之前分析的 OTC/TTC/AGENCY)
+// 类型字典映射 (前端写死一份，用于详情展示和下拉框翻译)
 const typeMap = {
     1: { label: '转运中心 (OTC)', tagType: 'primary' },
     2: { label: '分拣中心 (TTC)', tagType: 'success' },
     3: { label: '营业部 (AGENCY)', tagType: 'warning' }
 }
-
-// 获取类型文本
 const getTypeLabel = (type) => typeMap[type]?.label || '未知类型'
-// 获取 Tag 颜色
 const getTypeTag = (type) => typeMap[type]?.tagType || 'info'
 
-// ================= 方法逻辑 =================
+// ================= 2. 抽屉与表单状态 =================
+const drawerVisible = ref(false)
+const drawerTitle = ref('')
+const isEdit = ref(false) // 标记当前是新增还是编辑
+const submitLoading = ref(false) // 提交按钮的 loading
+const typeList = ref([]) // 后端返回的类型列表
 
-// 获取左侧树形数据
+// 表单数据 (用 reactive 方便直接 v-model 绑定)
+const formData = reactive({
+    id: null,
+    name: '',
+    longitude: null,
+    latitude: null,
+    type: null,
+    parentId: null
+})
+
+// ================= 3. 数据请求方法 =================
+
+// 获取左侧树
 const fetchTreeData = async () => {
     try {
         const res = await getOrganTree()
@@ -184,41 +281,78 @@ const fetchTreeData = async () => {
     }
 }
 
-// 👇 3. 获取右侧详情数据
+// 获取右侧详情
 const fetchOrganDetail = async (id) => {
     loading.value = true
     try {
-        // 调用接口，传入当前节点的 ID
         const res = await getOrganById(id)
-        // 将后端返回的 data 赋值给详情对象 (注意处理雪花 ID，后端最好已转为 String)
+        console.log('fetch agency res', res)
+        console.log('fetch agency  res2', res.data)
         organDetail.value = res.data
     } catch (error) {
-        console.error('获取机构详情失败:', error)
         ElMessage.error('获取机构详情失败')
     } finally {
         loading.value = false
     }
 }
 
-// 点击树节点事件
-const handleNodeClick = (data) => {
-    console.log('data', data)
-    currentNode.value = data
-    organDetail.value = null // 切换节点时先清空旧数据
-    // 触发详情请求 (假设树节点的主键也是 id)
-    if (data.id) {
-        fetchOrganDetail(data.id)
+// 获取类型列表 (用于新增时的下拉框)
+const fetchTypeList = async () => {
+    try {
+        const res = await getOrganType()
+        typeList.value = res.data || []
+    } catch (error) {
+        console.error('获取类型列表失败:', error)
     }
 }
 
-// 占位：编辑操作
-const handleEdit = () => {
-    ElMessage.info(`准备编辑机构: ${organDetail.value.name}`)
-    // TODO: 打开编辑弹窗
+// ================= 4. 交互事件 =================
+
+// 点击树节点
+const handleNodeClick = (data) => {
+    currentNode.value = data
+    organDetail.value = null
+    if (data.id) fetchOrganDetail(data.id)
 }
 
-// 占位：删除操作
+// 打开【新增】抽屉
+const openAddDrawer = () => {
+    isEdit.value = false
+    drawerTitle.value = '新增机构'
+    // 清空表单
+    Object.assign(formData, {
+        id: null,
+        name: '',
+        longitude: null,
+        latitude: null,
+        type: null,
+        parentId: null
+    })
+    drawerVisible.value = true
+}
+
+// 打开【编辑】抽屉
+const openEditDrawer = () => {
+    if (!organDetail.value) return
+    isEdit.value = true
+    drawerTitle.value = '编辑机构'
+    // 回填表单数据
+    console.log('id is when open drawer', organDetail.value.id)
+    Object.assign(formData, {
+        id: organDetail.value.id,
+        name: organDetail.value.name,
+        longitude: organDetail.value.longitude,
+        latitude: organDetail.value.latitude,
+        type: organDetail.value.type,
+        parentId: organDetail.value.parentId
+    })
+    drawerVisible.value = true
+}
+
+// 点击【删除】
 const handleDelete = () => {
+    console.log('handleDelete')
+    if (!organDetail.value) return
     ElMessageBox.confirm(
         `确定要删除机构【${organDetail.value.name}】吗？`,
         '警告',
@@ -228,16 +362,71 @@ const handleDelete = () => {
             type: 'warning'
         }
     )
-        .then(() => {
-            ElMessage.success('删除成功 (模拟)')
-            // TODO: 调用删除接口并刷新树
+        .then(async () => {
+            try {
+                // 调用删除接口，传入字符串 ID
+                await deleteOrgan(String(organDetail.value.id))
+                ElMessage.success('删除成功')
+                currentNode.value = null
+                organDetail.value = null
+                fetchTreeData() // 刷新树
+            } catch (error) {
+                ElMessage.error('删除失败')
+            }
         })
         .catch(() => {})
 }
 
-// 组件挂载
+// 点击【确定保存】(提交表单)
+const handleSubmit = async () => {
+    // 简单的前端非空校验
+    if (!formData.name) return ElMessage.warning('请输入机构名称')
+    if (formData.longitude === null || formData.latitude === null)
+        return ElMessage.warning('请输入经纬度')
+    if (!isEdit.value && !formData.type)
+        return ElMessage.warning('请选择机构类型')
+
+    submitLoading.value = true
+    try {
+        if (isEdit.value) {
+            // 【编辑】：只传允许修改的字段 + id
+            console.log('fromData id is', formData.id)
+            await updateOrgan({
+                id: String(formData.id), // 雪花ID转字符串防丢失
+                name: formData.name,
+                longitude: formData.longitude,
+                latitude: formData.latitude,
+                type: formData.type, // 虽然后端可能不更新，但按接口要求带上
+                parentId: formData.parentId
+            })
+            ElMessage.success('修改成功')
+            fetchOrganDetail(String(formData.id)) // 刷新右侧详情
+        } else {
+            // 【新增】：传所有字段
+            const payload = {
+                name: formData.name,
+                longitude: formData.longitude,
+                latitude: formData.latitude,
+                type: formData.type
+            }
+            if (formData.parentId) payload.parentId = formData.parentId // 有父级才传
+            await createOrgan(payload)
+            ElMessage.success('新增成功')
+        }
+
+        drawerVisible.value = false // 关闭抽屉
+        fetchTreeData() // 刷新左侧树
+    } catch (error) {
+        ElMessage.error(isEdit.value ? '修改失败' : '新增失败')
+    } finally {
+        submitLoading.value = false
+    }
+}
+
+// ================= 5. 生命周期 =================
 onMounted(() => {
     fetchTreeData()
+    fetchTypeList() // 页面加载时获取类型列表
 })
 </script>
 
@@ -247,7 +436,6 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
 }
-/* 左右布局容器 */
 .organ-container {
     display: flex;
     height: 650px;
@@ -255,8 +443,6 @@ onMounted(() => {
     border-radius: 4px;
     overflow: hidden;
 }
-
-/* 左侧树形菜单样式 */
 .organ-tree {
     width: 300px;
     border-right: 1px solid #ebeef5;
@@ -264,30 +450,22 @@ onMounted(() => {
     overflow-y: auto;
     background-color: #fafafa;
 }
-
-/* 右侧详情区域样式 */
 .organ-detail {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
     background-color: #fff;
 }
-
-/* 详情头部：标题和按钮左右对齐 */
 .detail-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
-/* 等宽字体：专门用来展示长串的数字 ID，看起来更专业 */
 .mono-text {
     font-family: Consolas, Monaco, 'Courier New', monospace;
     color: #606266;
     letter-spacing: 0.5px;
 }
-
-/* 地图预留区域样式 */
 .extra-section {
     margin-top: 30px;
 }
@@ -307,7 +485,16 @@ onMounted(() => {
     font-size: 14px;
 }
 
-/* 滚动条美化 */
+/* 开发中提示样式 */
+.dev-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #909399;
+}
+
 .organ-tree::-webkit-scrollbar,
 .organ-detail::-webkit-scrollbar {
     width: 6px;
