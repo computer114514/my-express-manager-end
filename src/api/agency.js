@@ -1,20 +1,20 @@
 import request from '../utils/request'
 export const getOrganTree = () => {
     return request({
-        url: '/api/organ/tree',
+        url: '/api/manager/organ/tree',
         method: 'GET'
     })
 }
 export const getOrganById = (id) => {
     return request({
-        url: '/api/organ/' + id,
+        url: '/api/manager/organ/' + id,
         method: 'GET'
     })
 }
 
 export const createOrgan = (data) => {
     return request({
-        url: '/api/organ/create',
+        url: '/api/manager/organ/create',
         method: "POST",
         data: data
     })
@@ -22,7 +22,7 @@ export const createOrgan = (data) => {
 
 export const updateOrgan = (data) => {
     return request({
-        url: '/api/organ/update',
+        url: '/api/manager/organ/update',
         method: "POST",
         data: data
     })
@@ -31,14 +31,14 @@ export const updateOrgan = (data) => {
 export const deleteOrgan = (id) => {
     console.log("delete id:", id);
     return request({
-        url: '/api/organ/delete/' + id,
+        url: '/api/manager/organ/delete/' + id,
         method: "POST",
     })
 }
 
 export const getOrganType = () => {
     return request({
-        url: '/api/organ/organType',
+        url: '/api/manager/organ/organType',
         method: "GET"
     })
 }

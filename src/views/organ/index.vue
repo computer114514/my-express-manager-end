@@ -275,7 +275,7 @@ const formData = reactive({
 const fetchTreeData = async () => {
     try {
         const res = await getOrganTree()
-        treeData.value = res.data || []
+        treeData.value = res || []
     } catch (error) {
         console.error('获取机构树失败:', error)
     }
@@ -288,7 +288,7 @@ const fetchOrganDetail = async (id) => {
         const res = await getOrganById(id)
         console.log('fetch agency res', res)
         console.log('fetch agency  res2', res.data)
-        organDetail.value = res.data
+        organDetail.value = res
     } catch (error) {
         ElMessage.error('获取机构详情失败')
     } finally {
@@ -300,7 +300,7 @@ const fetchOrganDetail = async (id) => {
 const fetchTypeList = async () => {
     try {
         const res = await getOrganType()
-        typeList.value = res.data || []
+        typeList.value = res || []
     } catch (error) {
         console.error('获取类型列表失败:', error)
     }

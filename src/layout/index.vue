@@ -18,8 +18,8 @@
                     <span>仪表盘</span>
                 </el-menu-item>
                 <el-menu-item index="/user">
-                    <el-icon><User /></el-icon>
-                    <span>用户管理</span>
+                    <el-icon><Box /></el-icon>
+                    <span>快递员管理</span>
                 </el-menu-item>
                 <el-menu-item index="/organ">
                     <el-icon><Setting /></el-icon>
@@ -59,6 +59,7 @@
 </template>
 
 <script setup>
+import { Box } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
