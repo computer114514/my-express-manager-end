@@ -24,6 +24,12 @@ const routes = [
         name: 'Organ',
         component: () => import("../views/organ/index.vue"),
         meta: { title: '机构管理', icon: 'Setting' }
+      },
+      {
+        path: 'scope',
+        name: 'Scope',
+        component: () => import("@/components/CourierScope.vue"),
+        meta: { title: '作业返回', icon: 'Coordinate' }
       }
     ]
   }

@@ -44,8 +44,23 @@
                 </template>
             </el-table-column>
             <el-table-column
-                prop="status"
+                prop="onDuty"
                 label="状态"
+                width="80"
+                align="center"
+            >
+                <template #default="{ row }">
+                    <el-tag
+                        :type="row.onDuty === 1 ? 'success' : 'primary'"
+                        size="small"
+                    >
+                        {{ row.onDuty === 1 ? '在岗' : '休息' }}
+                    </el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column
+                prop="status"
+                label="账号状态"
                 width="80"
                 align="center"
             >
@@ -54,7 +69,7 @@
                         :type="row.status === 1 ? 'success' : 'danger'"
                         size="small"
                     >
-                        {{ row.status === 1 ? '启用' : '禁用' }}
+                        {{ row.status === 1 ? '正常' : '封停' }}
                     </el-tag>
                 </template>
             </el-table-column>
@@ -65,6 +80,9 @@
                 align="center"
             >
                 <template #default="{ row }">
+                    <el-button type="primary" link @click="handleScope(row)"
+                        >作业范围</el-button
+                    >
                     <el-button type="primary" link @click="handleEdit(row)"
                         >编辑</el-button
                     >
@@ -173,6 +191,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import ImageUpload from '@/components/ImageUpload.vue'
+import { useRouter } from 'vue-router'
+
 import {
     getCourierList,
     createCourier,
@@ -187,6 +207,7 @@ const tableData = ref([])
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
+const router = useRouter()
 
 async function fetchList() {
     loading.value = true
@@ -216,10 +237,16 @@ const getDefaultForm = () => ({
     appImage: '',
     status: 1,
     organBid: '',
-    password: ''
+    password: '',
+    onDuty: 0
 })
 const onOrganChecked = (organBid) => {
     formData.organBid = organBid
+}
+const handleScope = (row) => {
+    router.push(
+        `/scope?courierId=${row.id}&agencyCoordinate=${row.organInfoVO.coordinate}`
+    )
 }
 
 const formData = reactive(getDefaultForm())

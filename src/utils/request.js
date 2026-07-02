@@ -26,13 +26,13 @@ request.interceptors.response.use(
   response => {
     const res = response.data
     if (res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || '请求失败'))
+      ElMessage.error(res.msg || '请求失败')
+      return Promise.reject(new Error(res.msg || '请求失败'))
     }
     return res.data;
   },
   error => {
-    ElMessage.error(error.message || '网络错误')
+    ElMessage.error(error.msg || '网络错误')
     return Promise.reject(error)
   }
 )
