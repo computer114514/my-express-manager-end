@@ -8,7 +8,6 @@
                 >
             </div>
         </template>
-
         <!-- 卡片主体：左右分栏布局 -->
         <div class="organ-container">
             <!-- 左侧：树形结构 -->
@@ -39,9 +38,15 @@
                         <div class="header-actions">
                             <el-button
                                 type="primary"
+                                :icon="MapLocation"
+                                @click="handleCourierScope"
+                                >作业范围</el-button
+                            >
+                            <el-button
+                                type="primary"
                                 :icon="Edit"
                                 @click="openEditDrawer"
-                                >编辑</el-button
+                                >编辑信息</el-button
                             >
                             <el-button
                                 type="danger"
@@ -223,7 +228,14 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { Edit, Delete, Location, Plus, SetUp } from '@element-plus/icons-vue'
+import {
+    Edit,
+    Delete,
+    Location,
+    Plus,
+    SetUp,
+    MapLocation
+} from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
     getOrganTree,
@@ -232,7 +244,8 @@ import {
     createOrgan,
     updateOrgan,
     deleteOrgan
-} from '../../api/agency'
+} from '../../api/Agency'
+import router from '@/router'
 
 // ================= 1. 基础状态 =================
 const treeData = ref([])
@@ -270,7 +283,12 @@ const formData = reactive({
 })
 
 // ================= 3. 数据请求方法 =================
-
+//点击作业范围按钮
+const handleCourierScope = () => {
+    router.push(
+        `/organScope?id=${organDetail.value.id}&agencyCoordinate=${organDetail.value.longitude + ',' + organDetail.value.latitude}`
+    )
+}
 // 获取左侧树
 const fetchTreeData = async () => {
     try {

@@ -1,4 +1,10 @@
 <template>
+    <div>
+        <el-button type="none" size="normal" @click="router.back()">
+            <el-icon><ArrowLeft /></el-icon>
+            返回</el-button
+        >
+    </div>
     <div
         style="display: flex; justify-content: space-between; margin: 20px 10px"
     >
@@ -43,7 +49,7 @@
     </div>
     <el-dialog title="删除作业范围" v-model="dialogVisiblity" width="40%">
         <span>{{
-            `此操作将删除该快递员【id:${route.query.courierId}】的工作范围
+            `此操作将删除该快递员【id:${id}】的工作范围
             该操作不可逆`
         }}</span>
         <template #footer>
@@ -58,26 +64,21 @@
 </template>
 
 <script setup>
-/// <reference types="@amap/amap-jsapi-types" />
-import { useRoute } from 'vue-router'
 import {
     computed,
     onMounted,
     onUnmounted,
     reactive,
     ref,
-    shallowRef
+    shallowRef,
+    watch
 } from 'vue'
-import {
-    saveCourierScope,
-    getCourierScope,
-    deleteScope
-} from '@/api/courierScope'
+import { useRouter } from 'vue-router'
 import AMapLoader from '@amap/amap-jsapi-loader'
 import { ElMessage } from 'element-plus'
 import { el, fa } from 'element-plus/es/locale/index.mjs'
 
-let route = useRoute()
+let id = null
 let map = null
 let mouseTool = null
 let purePath = null
@@ -90,14 +91,22 @@ const dialogVisiblity = ref(false)
 let polygonEditior = null
 let Amap = null
 let path = null
-coordinateData.courierId = route.query.courierId
+const router = useRouter()
 
 const showButton = computed(() => {
     //原来是这样，你加ref一开始是为了让pollygon变成响应式，可是不能乱加，你用计算属性，计算这个属性不行吗，绕过模版？
     return !isDrawing.value && polygon.value !== null
 })
 
+//===================================接收父组件======================================
+const props = defineProps(['pathData', 'routeQuery'])
+
+const emit = defineEmits(['save', 'delete', 'get'])
+//======================================END=========================================
+
 onMounted(async () => {
+    id = props.routeQuery.id
+    coordinateData.id = id
     //1,配置安全密钥
     window._AmapSecurityConfig = {
         amapSecurityCode: '2daf5ab9c52b87b02f17c595eb97200d'
@@ -199,7 +208,7 @@ onUnmounted(() => {
     map?.destroy()
 })
 const saveRequestData = {
-    courierId: '',
+    id: '',
     coordinateList: []
 }
 const coordinate = {
@@ -266,36 +275,42 @@ const startDraw = () => {
     }
 }
 const init = async () => {
-    const res = await getCourierScope(route.query.courierId)
-    console.log('成功获取到了数据', res)
-    if (res.coordinateList.length != 0) {
-        path = res.coordinateList
-        //还是解析一下（极寒）；
-        purePath = path.map((element) => {
-            let newArray = []
-            newArray.push(element.longitude)
-            newArray.push(element.latitude)
-            return newArray
-        })
-        polygon.value = new Amap.Polygon({
-            path: purePath,
-            strokeColor: '#FF33FF',
-            strokeWeight: 3,
-            fillColor: '#1791fc',
-            fillOpacity: 0.3,
-            extData: res
-        })
-        //自动调整视野
-        coordinateData.coordinateList = path
-
-        map.add(polygon.value)
-        map.setFitView([polygon.value])
-    } else {
-        if (!isDrawing) {
-            ElMessage.warning('该快递员暂无作业范围!')
-        }
-    }
+    //先获取一遍数据，再初始化
+    emit('get', id)
 }
+//watch方法，用于防止emit流转的data数据没到就初始化多边形，等到path变化了，才渲染多边形哦
+watch(
+    () => {
+        return props.pathData?.path
+        //有就.data没有就undefined
+    },
+    () => {
+        if (props.pathData.path.length != 0) {
+            path = props.pathData.path
+            //还是解析一下（极寒）；
+            console.log('props.path', props.pathData.purePath)
+
+            purePath = props.pathData.purePath
+            polygon.value = new Amap.Polygon({
+                path: purePath,
+                strokeColor: '#FF33FF',
+                strokeWeight: 3,
+                fillColor: '#1791fc',
+                fillOpacity: 0.3
+            })
+            //自动调整视野
+            coordinateData.coordinateList = path
+
+            map.add(polygon.value)
+            map.setFitView([polygon.value])
+        } else {
+            if (!isDrawing) {
+                ElMessage.warning('该快递员暂无作业范围!')
+            }
+        }
+    },
+    { deep: true }
+)
 
 const handleClickDeleteButton = () => {
     dialogVisiblity.value = true
@@ -303,7 +318,7 @@ const handleClickDeleteButton = () => {
 const deleteScopeMethod = async () => {
     isDrawing.value = false
     isEditing.value = false
-    await deleteScope(route.query.courierId)
+    emit('delete', id)
     //清除原先的围栏
     // polygon.setMap(null)
     // polygon = null
@@ -316,24 +331,17 @@ const deleteScopeMethod = async () => {
         polygonEditior.close()
     }
     init()
-
     //要把编辑器也关掉。
 
-    ElMessage.success('已删除工作范围')
     dialogVisiblity.value = false
 }
 const removePolygonMethod = () => {
-    // await deleteScope(route.query.courierId)
     //清除原先的围栏
     if (polygon.value != null) {
         polygon.value.setMap(null)
         polygon.value = null
     }
-
-    //重新获取新围栏，添加上
-    // init()
-
-    //要把编辑器也关掉。
+    emit('get', id)
 
     ElMessage.success('已清除围栏')
 }
@@ -346,8 +354,7 @@ const save = async () => {
         return
     }
     list.push(list[0])
-    await saveCourierScope({ ...coordinateData, coordinateList: list })
-    ElMessage.success('保存成功')
+    emit('save', { ...coordinateData, coordinateList: list })
 }
 
 const toPurePath = (rawPath) => {
@@ -375,7 +382,7 @@ const toRawPath = (purePath) => {
 
 //获取当前快递员对应的中心点
 const getCenter = () => {
-    const coordinateStr = route.query.agencyCoordinate
+    const coordinateStr = props.routeQuery.agencyCoordinate
     if (coordinateStr == null) {
         return []
     }

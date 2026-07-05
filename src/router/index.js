@@ -10,26 +10,32 @@ const routes = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('../views/dashboard/index.vue'),
+        component: () => import('../views/dashboard/Index.vue'),
         meta: { title: '仪表盘', icon: 'Odometer' }
       },
       {
         path: 'user',
         name: 'User',
-        component: () => import('../views/user/index.vue'),
+        component: () => import('../views/courier/Index.vue'),
         meta: { title: '用户管理', icon: 'User' }
       },
       {
         path: 'organ',
         name: 'Organ',
-        component: () => import("../views/organ/index.vue"),
+        component: () => import("../views/organ/Index.vue"),
         meta: { title: '机构管理', icon: 'Setting' }
       },
       {
-        path: 'scope',
-        name: 'Scope',
-        component: () => import("@/components/CourierScope.vue"),
-        meta: { title: '作业返回', icon: 'Coordinate' }
+        path: 'courierScope',
+        name: 'CourierScope',
+        component: () => import("@/views/courier/CourierScope.vue"),
+        meta: { title: '快递员作业范围', icon: 'Coordinate' }
+      },
+      {
+        path: 'organScope',
+        name: 'OrganScope',
+        component: () => import("@/views/organ/OrganScope.vue"),
+        meta: { title: '机构作业范围', icon: 'Coordinate' }
       }
     ]
   }

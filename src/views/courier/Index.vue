@@ -198,7 +198,7 @@ import {
     createCourier,
     updateCourier,
     deleteCourier
-} from '@/api/courier'
+} from '@/api/Courier'
 import OrganTree from '@/components/OrganTree.vue'
 
 // ======================== 列表 & 分页 ========================
@@ -245,7 +245,7 @@ const onOrganChecked = (organBid) => {
 }
 const handleScope = (row) => {
     router.push(
-        `/scope?courierId=${row.id}&agencyCoordinate=${row.organInfoVO.coordinate}`
+        `/courierScope?id=${row.id}&agencyCoordinate=${row.organInfoVO.coordinate}`
     )
 }
 

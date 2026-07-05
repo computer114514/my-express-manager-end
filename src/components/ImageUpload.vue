@@ -17,7 +17,7 @@
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { getSign } from '../api/oss'
+import { getSign } from '../api/Oss'
 import { now } from '@vueuse/core'
 
 const emit = defineEmits(['onGetUrl'])
