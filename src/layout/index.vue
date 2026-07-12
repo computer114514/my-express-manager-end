@@ -25,9 +25,13 @@
                     <el-icon><Setting /></el-icon>
                     <span>机构管理</span>
                 </el-menu-item>
-                <el-menu-item index="/test">
+                <!-- <el-menu-item index="/test">
                     <el-icon><Coordinate /></el-icon>
                     <span>测试页面</span>
+                </el-menu-item> -->
+                <el-menu-item index="/transportLine">
+                    <el-icon><MapLocation /></el-icon>
+                    <span>路线管理</span>
                 </el-menu-item>
             </el-menu>
         </el-aside>
@@ -63,7 +67,7 @@
 </template>
 
 <script setup>
-import { Box, Coordinate } from '@element-plus/icons-vue'
+import { Box, Coordinate, MapLocation } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 

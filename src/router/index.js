@@ -36,6 +36,12 @@ const routes = [
         name: 'OrganScope',
         component: () => import("@/views/organ/OrganScope.vue"),
         meta: { title: '机构作业范围', icon: 'Coordinate' }
+      },
+      {
+        path: 'transportLine',
+        name: 'TransportLine',
+        component: () => import("@/views/line/index.vue"),
+        meta: { title: '转运路线管理', icon: 'Map' }
       }
     ]
   }

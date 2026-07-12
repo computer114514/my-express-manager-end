@@ -146,12 +146,7 @@ onMounted(async () => {
     //5,监听完成事件
     mouseTool.on('draw', (event) => {
         const coordinateListStr = event.obj.toString()
-        console.log(
-            '非常好',
-            event.obj,
-            event.obj.getPath(),
-            event.obj.getPath().length
-        )
+
         mouseTool.close(true)
         if (event.obj.getPath().length < 3) {
             //地图上移除图形对象
@@ -288,7 +283,6 @@ watch(
         if (props.pathData.path.length != 0) {
             path = props.pathData.path
             //还是解析一下（极寒）；
-            console.log('props.path', props.pathData.purePath)
 
             purePath = props.pathData.purePath
             polygon.value = new Amap.Polygon({
@@ -341,7 +335,6 @@ const removePolygonMethod = () => {
         polygon.value.setMap(null)
         polygon.value = null
     }
-    emit('get', id)
 
     ElMessage.success('已清除围栏')
 }
@@ -388,7 +381,6 @@ const getCenter = () => {
     }
     const lon = parseFloat(coordinateStr.split(',')[0])
     const lat = parseFloat(coordinateStr.split(',')[1])
-    console.log('mark', [lon, lat])
 
     return [lon, lat]
 }

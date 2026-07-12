@@ -304,8 +304,6 @@ const fetchOrganDetail = async (id) => {
     loading.value = true
     try {
         const res = await getOrganById(id)
-        console.log('fetch agency res', res)
-        console.log('fetch agency  res2', res.data)
         organDetail.value = res
     } catch (error) {
         ElMessage.error('获取机构详情失败')
@@ -355,7 +353,6 @@ const openEditDrawer = () => {
     isEdit.value = true
     drawerTitle.value = '编辑机构'
     // 回填表单数据
-    console.log('id is when open drawer', organDetail.value.id)
     Object.assign(formData, {
         id: organDetail.value.id,
         name: organDetail.value.name,
@@ -369,7 +366,6 @@ const openEditDrawer = () => {
 
 // 点击【删除】
 const handleDelete = () => {
-    console.log('handleDelete')
     if (!organDetail.value) return
     ElMessageBox.confirm(
         `确定要删除机构【${organDetail.value.name}】吗？`,
@@ -408,7 +404,6 @@ const handleSubmit = async () => {
     try {
         if (isEdit.value) {
             // 【编辑】：只传允许修改的字段 + id
-            console.log('fromData id is', formData.id)
             await updateOrgan({
                 id: String(formData.id), // 雪花ID转字符串防丢失
                 name: formData.name,

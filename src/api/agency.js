@@ -29,7 +29,6 @@ export const updateOrgan = (data) => {
 }
 
 export const deleteOrgan = (id) => {
-    console.log("delete id:", id);
     return request({
         url: '/api/manager/organ/delete/' + id,
         method: "POST",

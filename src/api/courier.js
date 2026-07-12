@@ -4,7 +4,6 @@ import request from '../utils/request'
 const prefix = "/api/manager/courier/";
 // 获取用户列表
 export function getCourierList(data) {
-  console.log("data", data);
   return request({
     url: prefix + "getCourierPage",
     method: 'get',

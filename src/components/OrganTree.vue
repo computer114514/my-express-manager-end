@@ -14,7 +14,7 @@
 <style scoped></style>
 
 <script setup>
-import { onMounted, watch, ref } from 'vue'
+import { onMounted, watch, ref, computed } from 'vue'
 import { getOrganTree } from '@/api/Agency'
 
 const props = defineProps({
@@ -33,10 +33,17 @@ const fetchTreeData = async () => {
 }
 const treeData = ref([])
 
+//这样会切断props的数据流！
 const agencyId = ref(props.defaultOrgan)
+
+// const agencyId = computed(() => {
+//     return props.defaultOrgan
+// })
+
 const emit = defineEmits(['onOrganChecked'])
 
 const onOrganChecked = () => {
+    console.log(agencyId.value)
     emit('onOrganChecked', agencyId.value)
 }
 
@@ -44,7 +51,15 @@ onMounted(() => {
     fetchTreeData()
 })
 
-watch(agencyId, () => {
+watch(
+    () => props.defaultOrgan,
+    (newVal) => {
+        agencyId.value = newVal
+        onOrganChecked()
+    }
+)
+watch(agencyId, (newVal) => {
+    agencyId.value = newVal
     onOrganChecked()
 })
 </script>

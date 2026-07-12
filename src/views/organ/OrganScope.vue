@@ -48,8 +48,6 @@ const deleteScopeMethod = async (id) => {
     ElMessage.success('已删除工作范围')
 }
 const save = async (coordinateData) => {
-    console.log('zmhs', coordinateData)
-
     await saveOrganScope(coordinateData)
     ElMessage.success('保存成功')
 }

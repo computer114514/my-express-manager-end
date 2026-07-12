@@ -26,9 +26,6 @@ const finalUrl = ref('')
 const allowedFile = ['image/jpeg', 'image/gif', 'image/png', 'image/webp']
 
 const handleAvatarSuccess = (response, uploadFile) => {
-    console.log('response', response)
-    console.log('response', uploadFile)
-
     imageUrl.value = URL.createObjectURL(uploadFile.raw)
 
     emit('onGetUrl', finalUrl.value)
@@ -46,7 +43,6 @@ const ossData = ref({
 
 const beforeAvatarUpload = async (rawFile) => {
     // debugger
-    console.log('rawFile', rawFile)
     //1,常规安检
     if (!allowedFile.includes(rawFile.type)) {
         ElMessage.error('图片类型不对!')
@@ -61,10 +57,8 @@ const beforeAvatarUpload = async (rawFile) => {
         ossData.value.expire - 5 <= Date.now() / 1000
     ) {
         //过期了，重新获取
-        console.log('request', await getSign())
         ossData.value = await getSign()
     }
-    console.log('ossDate', ossData.value)
     //3,组装key,目录+随机名+后缀。
     const suffix = rawFile.name.substring(rawFile.name.lastIndexOf('.'))
     const randomName =
@@ -72,7 +66,6 @@ const beforeAvatarUpload = async (rawFile) => {
     ossData.value.key = ossData.value.dir + randomName + suffix
     //自己组装地址,host+key
     finalUrl.value = ossData.value.host + '/' + ossData.value.key
-    console.log('finalUrl', finalUrl.value)
     return true
 }
 

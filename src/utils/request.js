@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 const request = axios.create({
   baseURL: '',
-  timeout: 5000
+  timeout: 8000
 })
 
 // 请求拦截器

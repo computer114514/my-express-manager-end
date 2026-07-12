@@ -20,7 +20,7 @@
             <el-table-column prop="name" label="姓名" min-width="50" />
             <el-table-column prop="phone" label="手机号" min-width="110" />
             <el-table-column
-                prop="organInfoVO.organName"
+                prop="organInfoVO.name"
                 label="所属机构"
                 min-width="90"
             />
@@ -160,7 +160,7 @@
                 </el-form-item> -->
                 <el-form-item
                     :label="isEdit ? '修改头像' : '新增头像'"
-                    size="normal"
+                    size="default"
                 >
                     <ImageUpload @onGetUrl="onGetUrl"></ImageUpload>
                 </el-form-item>
