@@ -15,7 +15,7 @@
 
 <script setup>
 import { onMounted, watch, ref, computed } from 'vue'
-import { getOrganTree } from '@/api/Agency'
+import { getOrganTree } from '@/api/agency'
 
 const props = defineProps({
     defaultOrgan: {

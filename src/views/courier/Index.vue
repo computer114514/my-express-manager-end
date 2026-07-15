@@ -244,6 +244,7 @@ const onOrganChecked = (organBid) => {
     formData.organBid = organBid
 }
 const handleScope = (row) => {
+    console.log('row', row)
     router.push(
         `/courierScope?id=${row.id}&agencyCoordinate=${row.organInfoVO.coordinate}`
     )
