@@ -170,7 +170,7 @@ import {
     deleteTruck
 } from '@/api/truck'
 import OrganTree from '@/components/OrganTree.vue'
-
+//==============================================状态管理===============================================
 // 车辆类型字典 (根据你后端的枚举定义)
 const truckTypes = [
     { value: 1, label: '微卡' },
@@ -214,6 +214,7 @@ const rules = {
     volume: [{ required: true, message: '请输入车厢体积', trigger: 'blur' }],
     organId: [{ required: true, message: '请选择所属机构', trigger: 'change' }]
 }
+//==============================================方法管理===============================================
 
 // 获取列表数据
 const fetchList = async () => {
