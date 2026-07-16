@@ -37,6 +37,10 @@
                     <el-icon><TopLeft /></el-icon>
                     <span>司机管理</span>
                 </el-menu-item>
+                <el-menu-item index="/truck">
+                    <el-icon><CaretBottom /></el-icon>
+                    <span>货车管理</span>
+                </el-menu-item>
             </el-menu>
         </el-aside>
 
@@ -71,7 +75,13 @@
 </template>
 
 <script setup>
-import { Box, Coordinate, MapLocation, TopLeft } from '@element-plus/icons-vue'
+import {
+    Box,
+    CaretBottom,
+    Coordinate,
+    MapLocation,
+    TopLeft
+} from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 

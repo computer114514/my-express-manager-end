@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Layout from '../layout/index.vue'
+import Layout from '@/layout/index.vue'
 
 const routes = [
   {
@@ -10,19 +10,19 @@ const routes = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('../views/dashboard/Index.vue'),
+        component: () => import('@/views/dashboard/Index.vue'),
         meta: { title: '仪表盘', icon: 'Odometer' }
       },
       {
         path: 'user',
         name: 'User',
-        component: () => import('../views/courier/Index.vue'),
+        component: () => import('@/views/courier/Index.vue'),
         meta: { title: '用户管理', icon: 'User' }
       },
       {
         path: 'organ',
         name: 'Organ',
-        component: () => import("../views/organ/Index.vue"),
+        component: () => import("@/views/organ/index.vue"),
         meta: { title: '机构管理', icon: 'Setting' }
       },
       {
@@ -48,6 +48,12 @@ const routes = [
         name: 'Driver',
         component: () => import("@/views/driver/index.vue"),
         meta: { title: '司机管理', icon: 'Map' }
+      },
+      {
+        path: 'truck',
+        name: 'Truck',
+        component: () => import("@/views/truck/index.vue"),
+        meta: { title: '货车管理', icon: 'Car' }
       }
     ]
   }
