@@ -29,9 +29,28 @@
                         </el-tag>
                     </template>
                 </el-table-column>
+
+                <!-- 👇 新增：运输状态列 -->
+                <el-table-column prop="status" label="运输状态" width="120">
+                    <template #default="{ row }">
+                        <el-tag
+                            :type="
+                                row.status === 1
+                                    ? 'warning'
+                                    : row.status === 2
+                                      ? 'primary'
+                                      : 'info'
+                            "
+                            effect="light"
+                        >
+                            {{ statusMap[row.status] || '未知' }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+
                 <el-table-column
                     prop="weight"
-                    label="最大载重(吨)"
+                    label="最大载重(g)"
                     width="120"
                 />
                 <el-table-column
@@ -39,20 +58,22 @@
                     label="车厢体积(m³)"
                     width="120"
                 />
+
+                <!-- 👇 修改：所属机构，使用可选链 ?. 防止 organInfoVO 为 null 时页面崩溃 -->
                 <el-table-column
-                    prop="organId"
+                    prop="organInfoVO.name"
                     label="所属机构"
-                    min-width="180"
+                    min-width="120"
                 >
                     <template #default="{ row }">
-                        <!-- 这里简单显示ID，实际项目中建议通过机构字典或接口转为名称 -->
-                        {{ row.organInfoVO.name }}
+                        {{ row.organInfoVO?.name || '-' }}
                     </template>
                 </el-table-column>
+
                 <el-table-column
                     prop="createTime"
                     label="创建时间"
-                    width="180"
+                    width="200"
                 />
                 <el-table-column label="操作" width="180" fixed="right">
                     <template #default="{ row }">
@@ -116,28 +137,41 @@
                     </el-select>
                 </el-form-item>
 
+                <!-- 👇 新增：运输状态表单项 -->
+                <el-form-item label="运输状态" prop="status">
+                    <el-select
+                        v-model="form.status"
+                        placeholder="请选择运输状态"
+                        style="width: 100%"
+                    >
+                        <el-option label="待调度" :value="1" />
+                        <el-option label="运输中" :value="2" />
+                    </el-select>
+                </el-form-item>
+
                 <el-form-item label="最大载重" prop="weight">
+                    <!-- 👇 修复：placeholder 单位修正为 吨 -->
                     <el-input-number
                         v-model="form.weight"
                         :min="0.1"
                         :precision="1"
-                        placeholder="吨"
+                        placeholder="克"
                         style="width: 100%"
                     />
                 </el-form-item>
 
                 <el-form-item label="车厢体积" prop="volume">
+                    <!-- 👇 修复：placeholder 单位修正为 m³ -->
                     <el-input-number
                         v-model="form.volume"
                         :min="0.1"
                         :precision="1"
-                        placeholder="立方米"
+                        placeholder="cm³"
                         style="width: 100%"
                     />
                 </el-form-item>
 
                 <el-form-item label="所属机构" prop="organId">
-                    <!-- 引入你的树形机构选择器组件 -->
                     <OrganTree
                         :defaultOrgan="String(form.organId || '')"
                         @onOrganChecked="handleOrganChecked"
@@ -151,9 +185,8 @@
                     type="primary"
                     @click="submitForm"
                     :loading="submitLoading"
+                    >确定</el-button
                 >
-                    确定
-                </el-button>
             </template>
         </el-dialog>
     </div>
@@ -170,8 +203,8 @@ import {
     deleteTruck
 } from '@/api/truck'
 import OrganTree from '@/components/OrganTree.vue'
+
 //==============================================状态管理===============================================
-// 车辆类型字典 (根据你后端的枚举定义)
 const truckTypes = [
     { value: 1, label: '微卡' },
     { value: 2, label: '轻卡' },
@@ -180,47 +213,50 @@ const truckTypes = [
     { value: 5, label: '半挂车' }
 ]
 
-// 表格数据
+// 👇 新增：状态字典映射
+const statusMap = {
+    1: '待调度',
+    2: '运输中'
+}
+
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
-const queryParams = reactive({
-    pageNum: 1,
-    pageSize: 10
-})
+const queryParams = reactive({ pageNum: 1, pageSize: 10 })
 
-// 弹窗相关
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const submitLoading = ref(false)
 const formRef = ref(null)
+
+// 👇 修改：form 增加 status 字段
 const form = reactive({
     id: null,
     number: '',
     type: null,
     weight: null,
     volume: null,
-    organId: ''
+    organId: '',
+    status: 1 // 默认为待调度
 })
 
-// 表单校验规则
+// 👇 修改：rules 增加 status 校验
 const rules = {
     number: [
         { required: true, message: '请输入车牌号', trigger: 'blur' },
         { min: 7, max: 20, message: '车牌号长度7-20位', trigger: 'blur' }
     ],
     type: [{ required: true, message: '请选择车辆类型', trigger: 'change' }],
+    status: [{ required: true, message: '请选择运输状态', trigger: 'change' }],
     weight: [{ required: true, message: '请输入最大载重', trigger: 'blur' }],
     volume: [{ required: true, message: '请输入车厢体积', trigger: 'blur' }],
     organId: [{ required: true, message: '请选择所属机构', trigger: 'change' }]
 }
-//==============================================方法管理===============================================
 
-// 获取列表数据
+//==============================================方法管理===============================================
 const fetchList = async () => {
     loading.value = true
     try {
-        // 拦截器已处理，res 直接就是 data 里的 { count, list }
         const res = await getTruckList(queryParams)
         tableData.value = res.list || []
         total.value = Number(res.count) || 0
@@ -231,13 +267,12 @@ const fetchList = async () => {
     }
 }
 
-// 新增
 const handleAdd = () => {
     dialogTitle.value = '新增卡车'
     dialogVisible.value = true
 }
 
-// 编辑
+// 👇 修改：编辑回显逻辑
 const handleEdit = (row) => {
     dialogTitle.value = '编辑卡车'
     Object.assign(form, {
@@ -246,12 +281,13 @@ const handleEdit = (row) => {
         type: row.type,
         weight: row.weight,
         volume: row.volume,
-        organId: row.organInfoVO.id
+        // 使用可选链提取嵌套对象的 id，兼容老数据或空数据
+        organId: row.organInfoVO?.id || '',
+        status: row.status ?? 1
     })
     dialogVisible.value = true
 }
 
-// 删除
 const handleDelete = async (row) => {
     try {
         await ElMessageBox.confirm('确定要删除该卡车吗？', '警告', {
@@ -259,40 +295,32 @@ const handleDelete = async (row) => {
             cancelButtonText: '取消',
             type: 'warning'
         })
-
-        // 注意：你描述里写的是传入 organId，但正常逻辑删除卡车应该传卡车的 id
-        // 这里我按传 row.id 处理，如果后端确实要求传 organId，请改为 row.organId
         await deleteTruck(row.id)
         ElMessage.success('删除成功')
         fetchList()
     } catch (error) {
-        if (error !== 'cancel') {
-            ElMessage.error('删除失败')
-        }
+        if (error !== 'cancel') ElMessage.error('删除失败')
     }
 }
 
-// 机构选择回调
 const handleOrganChecked = (organId) => {
     form.organId = organId
 }
 
-// 提交表单
+// 👇 修改：提交时携带 status
 const submitForm = async () => {
     if (!formRef.value) return
-
     await formRef.value.validate(async (valid) => {
         if (!valid) return
-
         submitLoading.value = true
         try {
-            // 按照你的接口要求，将 type, weight, volume 转为字符串
             const data = {
                 number: form.number,
                 type: String(form.type),
                 weight: String(form.weight),
                 volume: String(form.volume),
-                organId: form.organId
+                organId: form.organId,
+                status: form.status // 新增状态字段
             }
 
             if (form.id) {
@@ -303,7 +331,6 @@ const submitForm = async () => {
                 await createTruck(data)
                 ElMessage.success('创建成功')
             }
-
             dialogVisible.value = false
             fetchList()
         } catch (error) {
@@ -314,7 +341,7 @@ const submitForm = async () => {
     })
 }
 
-// 重置表单
+// 👇 修改：重置表单时包含 status
 const resetForm = () => {
     formRef.value?.resetFields()
     Object.assign(form, {
@@ -323,7 +350,8 @@ const resetForm = () => {
         type: null,
         weight: null,
         volume: null,
-        organId: ''
+        organId: '',
+        status: 1
     })
 }
 
@@ -336,11 +364,9 @@ onMounted(() => {
 .truck-container {
     padding: 20px;
 }
-
 .mb-4 {
     margin-bottom: 16px;
 }
-
 .pagination-container {
     margin-top: 20px;
     display: flex;

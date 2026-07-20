@@ -56,6 +56,16 @@
                         }}
                     </template>
                 </el-table-column>
+                <el-table-column label="状态" align="center">
+                    <template #default="scope">
+                        <!-- 处理机构信息可能为空的情况 -->
+                        {{
+                            driverStatus[scope.row.status]
+                                ? driverStatus[scope.row.status]
+                                : '未知'
+                        }}
+                    </template>
+                </el-table-column>
                 <el-table-column
                     prop="createTime"
                     label="创建时间"
@@ -180,7 +190,11 @@ const tableData = ref([])
 const loading = ref(false)
 const total = ref(0)
 const searchName = ref('') // 搜索条件
-
+const driverStatus = {
+    1: '空闲',
+    2: '拉货中',
+    3: '运输中'
+}
 const queryParams = reactive({
     pageNum: 1,
     pageSize: 10
