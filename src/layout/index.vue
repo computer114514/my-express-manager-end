@@ -52,14 +52,25 @@
                     <span>欢迎使用后台管理系统</span>
                     <el-dropdown>
                         <span class="el-dropdown-link">
-                            管理员
+                            <!-- 1. 展示用户头像（如果有） -->
+                            <el-avatar
+                                v-if="userInfo?.image"
+                                :size="30"
+                                :src="userInfo.image"
+                                class="user-avatar"
+                            />
+                            <!-- 2. 展示用户名，如果没有则默认显示"管理员" -->
+                            {{ userInfo?.name || '管理员' }}
                             <el-icon class="el-icon--right"
-                                ><arrow-down
+                                ><ArrowDown
                             /></el-icon>
                         </span>
                         <template #dropdown>
                             <el-dropdown-menu>
-                                <el-dropdown-item>退出登录</el-dropdown-item>
+                                <!-- 3. 绑定退出登录点击事件 -->
+                                <el-dropdown-item @click="handleLogout"
+                                    >退出登录</el-dropdown-item
+                                >
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
@@ -80,13 +91,43 @@ import {
     CaretBottom,
     Coordinate,
     MapLocation,
-    TopLeft
+    TopLeft,
+    Odometer,
+    Setting,
+    ArrowDown
 } from '@element-plus/icons-vue'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox, ElMessage } from 'element-plus'
+
+// 引入 Store
+import { useUserStore } from '@/store/index'
 
 const route = useRoute()
+const router = useRouter()
+const { userInfo, logout } = useUserStore()
+
 const activeMenu = computed(() => route.path)
+
+// 退出登录逻辑
+const handleLogout = () => {
+    ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    })
+        .then(() => {
+            // 1. 清除 Store 中的 token 和 userInfo
+            logout()
+            // 2. 给出提示
+            ElMessage.success('退出成功')
+            // 3. 跳转回登录页
+            router.push('/login')
+        })
+        .catch(() => {
+            // 用户点击了取消，什么都不做
+        })
+}
 </script>
 
 <style scoped>
@@ -134,5 +175,18 @@ const activeMenu = computed(() => route.path)
 .el-main {
     background-color: #f0f2f5;
     padding: 20px;
+}
+
+/* 新增：头像样式微调 */
+.user-avatar {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* 新增：下拉菜单触发器鼠标样式 */
+.el-dropdown-link {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }
 </style>

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '@/layout/index.vue'
+import component from 'element-plus/es/components/tree-select/src/tree-select-option.mjs'
 
 const routes = [
   {
@@ -56,6 +57,10 @@ const routes = [
         meta: { title: '货车管理', icon: 'Car' }
       }
     ]
+  },
+  {
+    path: "/login",
+    component: () => import("@/views/login/login.vue")
   }
 ]
 
