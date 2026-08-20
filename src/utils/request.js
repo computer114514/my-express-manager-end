@@ -4,7 +4,7 @@ import router from '@/router'
 
 const request = axios.create({
   baseURL: '',
-  timeout: 8000
+  timeout: 15000
 })
 
 // 请求拦截器
